@@ -1,0 +1,22 @@
+# Credentials — never commit these
+*.json
+.env
+.env.*
+credentials/
+secrets/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
