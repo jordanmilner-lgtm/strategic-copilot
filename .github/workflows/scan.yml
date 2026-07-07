@@ -2,7 +2,7 @@ name: Strategic Copilot Daily Scan
 
 on:
   schedule:
-    - cron: '0 7 * * 1-5'   # 7:00 AM UTC, Monday–Friday
+    - cron: '23 11 * * 1-5'  # 11:23 AM UTC (7:23 AM Eastern), Monday–Friday
   workflow_dispatch:          # Manual trigger available in GitHub UI
 
 jobs:
