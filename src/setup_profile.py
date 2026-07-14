@@ -3,7 +3,7 @@ import sys
 import json
 import re
 import anthropic
-from sheets import get_client, ensure_setup
+from store import save_profile
 
 SETUP_PROMPT = """You are helping set up an automated job search screening system.
 Based on the resume and sample job descriptions provided, generate a scoring profile.
@@ -57,11 +57,10 @@ def _read_stdin(label):
 
 
 def main():
-    api_key   = os.environ.get('ANTHROPIC_API_KEY', '').strip()
-    sheets_id = os.environ.get('GOOGLE_SHEETS_ID', '').strip()
+    api_key = os.environ.get('ANTHROPIC_API_KEY', '').strip()
 
-    if not api_key or not sheets_id:
-        print('ERROR: ANTHROPIC_API_KEY and GOOGLE_SHEETS_ID must be set')
+    if not api_key:
+        print('ERROR: ANTHROPIC_API_KEY must be set')
         sys.exit(1)
 
     # File mode (GitHub Actions) falls back to interactive (local)
@@ -110,34 +109,24 @@ def main():
         display = (val[:120] + '...') if len(str(val)) > 120 else val
         print(f'  {key}: {display}')
 
-    print('\nWriting to Google Sheets...')
-    sheets_client = get_client()
-    ensure_setup(sheets_client, sheets_id)
+    print('\nWriting to config/profile.yml...')
+    save_profile({
+        'background':         profile.get('background', ''),
+        'anchors':            profile.get('anchors', ''),
+        'keywords':           profile.get('keywords', ''),
+        'negative_signals':   profile.get('negative_signals', ''),
+        'comp_target':        '',
+        'score_threshold':    '6',
+        'location':           'US only',
+        'seniority_keywords': profile.get('seniority_keywords', 'head of, vp, vice president, director, chief, principal'),
+        'target_functions':   profile.get('target_functions', ''),
+        'exclude_functions':  profile.get('exclude_functions', ''),
+    })
 
-    sheet = sheets_client.open_by_key(sheets_id)
-    ws = sheet.worksheet('Config - Profile')
-    ws.clear()
-    ws.update(
-        [
-            ['Field', 'Value'],
-            ['Background',         profile.get('background', '')],
-            ['Anchors',            profile.get('anchors', '')],
-            ['Keywords',           profile.get('keywords', '')],
-            ['Negative Signals',   profile.get('negative_signals', '')],
-            ['Comp Target',        ''],
-            ['Score Threshold',    '6'],
-            ['Location',           'US only'],
-            ['Seniority Keywords', profile.get('seniority_keywords', 'head of, vp, vice president, director, chief, principal')],
-            ['Target Functions',   profile.get('target_functions', '')],
-            ['Exclude Functions',  profile.get('exclude_functions', '')],
-        ],
-        value_input_option='RAW',
-    )
-
-    print('Done. Profile written to Config - Profile tab.')
+    print('Done. Profile written to config/profile.yml.')
     print('\nNext steps:')
-    print('  1. Open your Google Sheet → Config - Profile and review the output')
-    print('  2. Optionally fill in the Comp Target row (e.g. $300K-$400K OTE) — leave blank to skip compensation filtering')
+    print('  1. Review config/profile.yml and edit anything that looks off')
+    print('  2. Optionally fill in comp_target (e.g. $300K-$400K OTE) — leave blank to skip compensation filtering')
     print('  3. Delete setup/resume.txt and setup/sample_jobs.txt from your repo')
     print('  4. You are ready to run your first scan')
 

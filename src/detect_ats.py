@@ -1,10 +1,8 @@
-import os
 import re
-import sys
 import time
 import requests
-import gspread
-from sheets import get_client, ensure_setup
+import yaml
+from store import COMPANIES_PATH
 
 HEADERS = {'User-Agent': 'Mozilla/5.0'}
 
@@ -130,43 +128,25 @@ def detect_ats(company_name):
 
 
 def main():
-    sheets_id = os.environ.get('GOOGLE_SHEETS_ID', '').strip()
-    if not sheets_id:
-        print('ERROR: GOOGLE_SHEETS_ID must be set')
-        sys.exit(1)
+    with open(COMPANIES_PATH, encoding='utf-8') as f:
+        data = yaml.safe_load(f) or {}
+    companies = data.get('companies', [])
 
-    client = get_client()
-    ensure_setup(client, sheets_id)
-
-    sheet  = client.open_by_key(sheets_id)
-    ws     = sheet.worksheet('Config - Companies')
-    rows   = ws.get_all_values()
-
-    if not rows:
-        print('Config - Companies tab is empty — add company names first')
+    if not companies:
+        print('config/companies.yml is empty — add company names first')
         return
-
-    headers = rows[0]
-    try:
-        name_col   = headers.index('Company Name')
-        ats_col    = headers.index('ATS Type')
-        handle_col = headers.index('ATS Handle')
-    except ValueError as e:
-        print(f'ERROR: Missing expected column: {e}')
-        sys.exit(1)
 
     detected = 0
     skipped  = 0
     failed   = []
-    cells    = []
+    changed  = False
 
-    for i, row in enumerate(rows[1:], start=2):
-        while len(row) <= max(name_col, ats_col, handle_col):
-            row.append('')
-
-        name   = row[name_col].strip()
-        ats    = row[ats_col].strip()
-        handle = row[handle_col].strip()
+    for c in companies:
+        if not isinstance(c, dict):
+            continue
+        name   = str(c.get('name', '') or '').strip()
+        ats    = str(c.get('ats', '') or '').strip()
+        handle = str(c.get('handle', '') or '').strip()
 
         if not name:
             continue
@@ -180,16 +160,19 @@ def main():
         found_ats, found_handle = detect_ats(name)
 
         if found_ats:
-            cells.append(gspread.Cell(i, ats_col + 1,    found_ats))
-            cells.append(gspread.Cell(i, handle_col + 1, found_handle))
+            c['ats'] = found_ats
+            c['handle'] = found_handle
+            c.setdefault('active', 'Y')
+            changed = True
             print(f'{found_ats}/{found_handle}')
             detected += 1
         else:
             print('not found — fill in manually')
             failed.append(name)
 
-    if cells:
-        ws.update_cells(cells, value_input_option='RAW')
+    if changed:
+        with open(COMPANIES_PATH, 'w', encoding='utf-8') as f:
+            yaml.safe_dump({'companies': companies}, f, sort_keys=False, allow_unicode=True, width=100)
 
     print(f'\n{"="*40}')
     print(f'Detected:  {detected}')

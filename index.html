@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Strategic Copilot — Job Board</title>
+<style>
+  :root {
+    --bg: #0f1117; --panel: #171a23; --border: #2a2f3d;
+    --text: #e6e8ee; --muted: #9aa1b2; --accent: #4f8ef7;
+    --good: #2ecc71; --mid: #f1c40f;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .controls input, .controls select {
+    background: var(--panel); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px; font-size: 14px;
+  }
+  .controls input { flex: 1; min-width: 200px; }
+  .count { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+  .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; min-width: 900px; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border);
+           vertical-align: top; }
+  th { background: var(--panel); font-size: 12px; text-transform: uppercase;
+       letter-spacing: .04em; color: var(--muted); cursor: pointer; user-select: none;
+       white-space: nowrap; position: sticky; top: 0; }
+  th .arrow { color: var(--accent); }
+  tr:hover td { background: rgba(79, 142, 247, .06); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .score { display: inline-block; min-width: 30px; text-align: center; font-weight: 700;
+           border-radius: 6px; padding: 2px 6px; background: var(--panel); }
+  .score.s9 { color: var(--good); border: 1px solid var(--good); }
+  .score.s7 { color: var(--mid); border: 1px solid var(--mid); }
+  .score.s0 { color: var(--muted); border: 1px solid var(--border); }
+  .thesis { color: var(--muted); font-size: 13px; max-width: 420px; }
+  .empty { padding: 40px; text-align: center; color: var(--muted); }
+  .badge { font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Strategic Copilot</h1>
+  <div class="sub" id="meta">Loading…</div>
+
+  <div class="controls">
+    <input id="q" type="search" placeholder="Search title, company, thesis…">
+    <select id="company"><option value="">All companies</option></select>
+    <select id="minScore">
+      <option value="0">Any score</option>
+      <option value="6">Score ≥ 6</option>
+      <option value="7">Score ≥ 7</option>
+      <option value="8">Score ≥ 8</option>
+      <option value="9">Score ≥ 9</option>
+    </select>
+  </div>
+  <div class="count" id="count"></div>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr id="headRow"></tr></thead>
+      <tbody id="body"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const COLS = [
+  { key: 'Fit Score',    label: 'Fit',    num: true },
+  { key: 'Job Title',    label: 'Title' },
+  { key: 'Company',      label: 'Company' },
+  { key: 'Date Posted',  label: 'Posted' },
+  { key: 'Comp Signal',  label: 'Comp' },
+  { key: 'Strategic Thesis', label: 'Why it fits' },
+  { key: 'Status',       label: 'Status' },
+];
+let jobs = [], sortKey = 'Fit Score', sortDir = -1;
+
+const $ = id => document.getElementById(id);
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g,
+    c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function scoreClass(v) { return v >= 9 ? 's9' : v >= 7 ? 's7' : 's0'; }
+
+function render() {
+  const q = $('q').value.trim().toLowerCase();
+  const co = $('company').value;
+  const min = Number($('minScore').value);
+
+  let rows = jobs.filter(j =>
+    (Number(j['Fit Score']) || 0) >= min &&
+    (!co || j['Company'] === co) &&
+    (!q || ['Job Title', 'Company', 'Strategic Thesis', 'Corporate Bottleneck']
+      .some(k => String(j[k] || '').toLowerCase().includes(q)))
+  );
+
+  rows.sort((a, b) => {
+    let x = a[sortKey] ?? '', y = b[sortKey] ?? '';
+    const col = COLS.find(c => c.key === sortKey);
+    if (col && col.num) { x = Number(x) || 0; y = Number(y) || 0; }
+    return (x < y ? -1 : x > y ? 1 : 0) * sortDir;
+  });
+
+  $('count').textContent = `${rows.length} of ${jobs.length} listings`;
+  $('body').innerHTML = rows.length ? rows.map(j => `
+    <tr>
+      <td><span class="score ${scoreClass(Number(j['Fit Score']))}">${esc(j['Fit Score'])}</span></td>
+      <td><a href="${esc(j['Job URL'])}" target="_blank" rel="noopener">${esc(j['Job Title'])}</a>
+          ${j['Abstract Fit Flag'] && String(j['Abstract Fit Flag']).toLowerCase().startsWith('y') ? '<div class="badge">abstract fit</div>' : ''}</td>
+      <td>${esc(j['Company'])}</td>
+      <td>${esc(j['Date Posted'])}</td>
+      <td>${esc(j['Comp Signal'])}</td>
+      <td class="thesis">${esc(j['Strategic Thesis'])}</td>
+      <td>${esc(j['Status'] || 'New')}</td>
+    </tr>`).join('')
+    : `<tr><td colspan="7" class="empty">No listings match. Results appear here after the first scan runs.</td></tr>`;
+}
+
+function buildHead() {
+  $('headRow').innerHTML = COLS.map(c =>
+    `<th data-key="${c.key}">${c.label} <span class="arrow">${c.key === sortKey ? (sortDir < 0 ? '▼' : '▲') : ''}</span></th>`
+  ).join('');
+  document.querySelectorAll('th').forEach(th => th.onclick = () => {
+    const k = th.dataset.key;
+    if (sortKey === k) sortDir *= -1; else { sortKey = k; sortDir = -1; }
+    buildHead(); render();
+  });
+}
+
+fetch('data/jobs.json?_=' + Date.now())
+  .then(r => r.json())
+  .then(d => {
+    jobs = d.jobs || [];
+    $('meta').textContent = d.generated_at
+      ? `Last updated ${d.generated_at} · ${jobs.length} qualifying roles`
+      : 'No scans have run yet.';
+    const companies = [...new Set(jobs.map(j => j['Company']).filter(Boolean))].sort();
+    $('company').innerHTML = '<option value="">All companies</option>' +
+      companies.map(c => `<option>${esc(c)}</option>`).join('');
+    buildHead(); render();
+  })
+  .catch(() => { $('meta').textContent = 'Could not load data/jobs.json.'; });
+
+['q', 'company', 'minScore'].forEach(id => $(id).oninput = render);
+</script>
+</body>
+</html>

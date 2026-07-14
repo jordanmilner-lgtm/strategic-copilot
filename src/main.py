@@ -2,7 +2,7 @@ import os
 import sys
 from datetime import datetime, timezone
 
-from sheets import get_client, ensure_setup, read_seen_urls, append_scored_urls, append_results, load_companies, load_profile
+from store import read_seen_urls, append_scored_urls, append_results, load_companies, load_profile
 from fetchers import FETCHERS
 from filters import passes_title_filter, is_too_old
 from scorer import score_jobs
@@ -11,22 +11,16 @@ from scorer import score_jobs
 def main():
     print(f'[{datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")} UTC] Strategic Copilot starting')
 
-    api_key   = os.environ.get('ANTHROPIC_API_KEY', '').strip()
-    sheets_id = os.environ.get('GOOGLE_SHEETS_ID', '').strip()
+    api_key = os.environ.get('ANTHROPIC_API_KEY', '').strip()
 
-    if not api_key or not sheets_id:
-        print('ERROR: ANTHROPIC_API_KEY and GOOGLE_SHEETS_ID must be set')
+    if not api_key:
+        print('ERROR: ANTHROPIC_API_KEY must be set')
         sys.exit(1)
 
-    client = get_client()
-
-    print('Checking Google Sheet setup...')
-    ensure_setup(client, sheets_id)
-
-    print('Loading config from Google Sheets...')
-    companies = load_companies(client, sheets_id)
-    profile   = load_profile(client, sheets_id)
-    seen_urls = read_seen_urls(client, sheets_id)
+    print('Loading config from config/ ...')
+    companies = load_companies()
+    profile   = load_profile()
+    seen_urls = read_seen_urls()
 
     print(f'  {len(companies)} active companies')
     print(f'  {len(seen_urls)} URLs in dedup cache')
@@ -102,13 +96,13 @@ def main():
     print(f'Qualifying:      {len(qualifying)}')
     print(f'{"="*40}')
 
-    print('\nWriting to Google Sheets...')
+    print('\nWriting to data/ ...')
     if new_urls:
-        append_scored_urls(client, sheets_id, new_urls)
-        print(f'  Wrote {len(new_urls)} URLs to Scored URLs tab')
+        append_scored_urls(new_urls)
+        print(f'  Wrote {len(new_urls)} URLs to data/scored_urls.json')
     if qualifying:
-        append_results(client, sheets_id, qualifying)
-        print(f'  Wrote {len(qualifying)} jobs to Opportunities CRM tab')
+        append_results(qualifying)
+        print(f'  Wrote {len(qualifying)} jobs to data/jobs.json')
 
     print(f'\n[{datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")} UTC] Done')
 
