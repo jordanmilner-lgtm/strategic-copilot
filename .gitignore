@@ -1,5 +1,6 @@
 # Credentials — never commit these
 *.json
+!data/*.json
 .env
 .env.*
 credentials/

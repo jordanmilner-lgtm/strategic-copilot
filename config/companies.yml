@@ -1,0 +1,21 @@
+# Target companies. Add a company with just its name and run the
+# "Detect Company ATS" workflow to auto-fill ats + handle, or fill them
+# in manually. Supported ATS types: ashby, greenhouse, lever, gem, workday.
+#
+# Fields:
+#   name:               display name
+#   ats:                ashby | greenhouse | lever | gem | workday
+#   handle:             the board handle (for workday: subdomain.wdN/board-path)
+#   active:             Y or N (default Y)
+#   seniority_override: optional comma-separated title keywords replacing the
+#                       profile's seniority_keywords for this company only
+
+companies:
+  - name: Example Company
+    ats: ashby
+    handle: example-handle
+    active: N
+  - name: Another Company
+    ats: greenhouse
+    handle: another-handle
+    active: N

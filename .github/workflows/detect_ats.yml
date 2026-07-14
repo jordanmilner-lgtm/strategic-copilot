@@ -3,6 +3,9 @@ name: Detect Company ATS
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write   # commit config/companies.yml back to the repo
+
 jobs:
   detect:
     runs-on: ubuntu-latest
@@ -15,7 +18,11 @@ jobs:
           cache: 'pip'
       - run: pip install -r requirements.txt
       - name: Detect ATS handles
-        env:
-          GOOGLE_SHEETS_ID: ${{ secrets.GOOGLE_SHEETS_ID }}
-          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
         run: python src/detect_ats.py
+      - name: Commit companies config
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add config/companies.yml
+          git diff --cached --quiet || git commit -m "Detect ATS handles"
+          git push

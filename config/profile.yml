@@ -1,0 +1,14 @@
+# Scoring profile. Run the "Build Scoring Profile" workflow (with
+# setup/resume.txt and setup/sample_jobs.txt in place) to auto-generate
+# this file, or fill it in by hand.
+
+background: 'Replace with 2-3 sentences: your level, background, and what you do'
+anchors: 'Replace with anchors separated by | e.g. Built GTM motion from 0->1 | Launched product into new market'
+keywords: 'Replace with keywords separated by commas e.g. GTM, revenue operations, go-to-market'
+negative_signals: 'Replace with signals separated by | e.g. Pure sales quota role | Individual contributor only'
+comp_target: ''
+score_threshold: '6'
+location: 'US only'
+seniority_keywords: 'head of, vp, vice president, director, chief, principal, managing director, general manager'
+target_functions: 'gtm, go-to-market, sales, revenue, commercial, product ops, product operations, product strategy, business ops, business operations, strategy, transformation, enablement, customer success, partnerships, alliances, ai strategy, enterprise, growth, chief of staff, value engineering'
+exclude_functions: 'engineer, legal, counsel, compliance, finance, accounting, recruiter, recruiting, cybersecurity, data science, machine learning'
