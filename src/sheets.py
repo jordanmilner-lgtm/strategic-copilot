@@ -72,16 +72,25 @@ def get_client():
 
 def ensure_setup(client, spreadsheet_id: str):
     sheet = client.open_by_key(spreadsheet_id)
-    existing = {ws.title for ws in sheet.worksheets()}
+    existing = {ws.title: ws for ws in sheet.worksheets()}
     created = []
+    updated = []
     for tab_name, headers, placeholders in _TAB_SETUP:
         if tab_name not in existing:
             ws = sheet.add_worksheet(title=tab_name, rows=1000, cols=max(len(headers) + 2, 4))
             rows = [headers] + placeholders
             ws.update(rows, value_input_option='RAW')
             created.append(tab_name)
+        else:
+            ws = existing[tab_name]
+            current_headers = ws.row_values(1)
+            if current_headers != headers:
+                ws.update([headers], range_name='A1', value_input_option='RAW')
+                updated.append(tab_name)
     if created:
         print(f'  Created tabs: {", ".join(created)}')
+    if updated:
+        print(f'  Updated headers: {", ".join(updated)}')
     return created
 
 
