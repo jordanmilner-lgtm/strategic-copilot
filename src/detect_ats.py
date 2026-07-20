@@ -8,10 +8,12 @@ from sheets import get_client, ensure_setup
 
 HEADERS = {'User-Agent': 'Mozilla/5.0'}
 
-ASHBY_RE      = re.compile(r'jobs\.ashbyhq\.com/([a-z0-9][a-z0-9-]*)')
-GREENHOUSE_RE = re.compile(r'(?:boards|job-boards)(?:\.eu)?\.greenhouse\.io/([a-z0-9][a-z0-9-]*)')
-LEVER_RE      = re.compile(r'jobs\.lever\.co/([a-z0-9][a-z0-9-]*)')
-GEM_RE        = re.compile(r'jobs\.gem\.com/([a-z0-9][a-z0-9-]*)')
+ASHBY_RE           = re.compile(r'jobs\.ashbyhq\.com/([a-z0-9][a-z0-9-]*)')
+GREENHOUSE_RE      = re.compile(r'(?:boards|job-boards)(?:\.eu)?\.greenhouse\.io/([a-z0-9][a-z0-9-]*)')
+LEVER_RE           = re.compile(r'jobs\.lever\.co/([a-z0-9][a-z0-9-]*)')
+GEM_RE             = re.compile(r'jobs\.gem\.com/([a-z0-9][a-z0-9-]*)')
+SMARTRECRUITERS_RE = re.compile(r'jobs\.smartrecruiters\.com/([A-Za-z0-9][A-Za-z0-9-]*)')
+ICIMS_RE           = re.compile(r'https?://([a-z0-9][a-z0-9-]*)\.icims\.com')
 
 
 def _get(url):
@@ -64,6 +66,21 @@ def _check_gem(handle):
         return False
 
 
+def _check_smartrecruiters(handle):
+    r = _get(f'https://api.smartrecruiters.com/v1/companies/{handle}/postings?limit=1&status=ACTIVE')
+    if not r:
+        return False
+    try:
+        return 'content' in r.json()
+    except Exception:
+        return False
+
+
+def _check_icims(handle):
+    r = _get(f'https://{handle}.icims.com/jobs/search')
+    return r is not None
+
+
 def _scrape_careers_page(company_name):
     """Fetch the company's careers page and look for ATS links in the HTML."""
     base = re.sub(r'[^a-z0-9]', '', company_name.lower())
@@ -95,6 +112,14 @@ def _scrape_careers_page(company_name):
             if m and _check_gem(m.group(1)):
                 return 'gem', m.group(1)
 
+            m = SMARTRECRUITERS_RE.search(html)
+            if m and _check_smartrecruiters(m.group(1)):
+                return 'smartrecruiters', m.group(1)
+
+            m = ICIMS_RE.search(html)
+            if m and _check_icims(m.group(1)):
+                return 'icims', m.group(1)
+
             time.sleep(0.2)
 
     return None, None
@@ -123,6 +148,8 @@ def detect_ats(company_name):
             return 'lever', handle
         if _check_gem(handle):
             return 'gem', handle
+        if _check_smartrecruiters(handle):
+            return 'smartrecruiters', handle
         time.sleep(0.2)
 
     # Pass 2: scrape the company's careers page for ATS links
@@ -198,7 +225,7 @@ def main():
 
     if failed:
         print('\nThese companies could not be detected automatically.')
-        print('They may use Workday, iCIMS, or another ATS not supported by this system.')
+        print('They may use Workday or another ATS not supported by this system.')
         print('Or their job board handle does not match their company name.')
         print('Check Section A in the README to look up their handle manually:')
         for name in failed:
