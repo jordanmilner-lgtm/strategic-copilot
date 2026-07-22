@@ -3,7 +3,12 @@ name: Strategic Copilot Daily Scan
 on:
   schedule:
     - cron: '23 11 * * 1-5'  # 11:23 AM UTC (7:23 AM Eastern), Monday–Friday
-  workflow_dispatch:          # Manual trigger via GitHub Actions tab
+  workflow_dispatch:
+    inputs:
+      lookback_days:
+        description: 'How many days back to look for jobs (default: 30)'
+        required: false
+        default: '30'
 
 jobs:
   scan:
@@ -29,4 +34,5 @@ jobs:
           GOOGLE_SHEETS_ID: ${{ secrets.GOOGLE_SHEETS_ID }}
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+          LOOKBACK_DAYS: ${{ github.event.inputs.lookback_days || '30' }}
         run: python src/main.py

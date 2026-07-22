@@ -11,9 +11,10 @@ from scorer import score_jobs
 def main():
     print(f'[{datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")} UTC] Strategic Copilot starting')
 
-    api_key      = os.environ.get('ANTHROPIC_API_KEY', '').strip()
-    sheets_id    = os.environ.get('GOOGLE_SHEETS_ID', '').strip()
-    rapidapi_key = os.environ.get('RAPIDAPI_KEY', '').strip()
+    api_key       = os.environ.get('ANTHROPIC_API_KEY', '').strip()
+    sheets_id     = os.environ.get('GOOGLE_SHEETS_ID', '').strip()
+    rapidapi_key  = os.environ.get('RAPIDAPI_KEY', '').strip()
+    lookback_days = int(os.environ.get('LOOKBACK_DAYS', '30') or '30')
 
     if not api_key or not sheets_id:
         print('ERROR: ANTHROPIC_API_KEY and GOOGLE_SHEETS_ID must be set')
@@ -35,6 +36,7 @@ def main():
     print(f'  {len(seen_urls)} URLs in dedup cache')
 
     threshold  = int(profile.get('score_threshold', 6) or 6)
+    print(f'  Lookback:  {lookback_days} days')
     new_urls   = []
     qualifying = []
     total_fetched  = 0
@@ -72,7 +74,7 @@ def main():
         total_fetched += len(jobs)
         print(f'  Fetched:   {len(jobs)}')
 
-        filtered = [j for j in jobs if not is_too_old(j) and passes_title_filter(j, co_profile)]
+        filtered = [j for j in jobs if not is_too_old(j, lookback_days) and passes_title_filter(j, co_profile)]
         total_filtered += len(filtered)
         print(f'  Filtered:  {len(filtered)}')
 
@@ -121,7 +123,7 @@ def main():
 
             filtered = [
                 j for j in jobs
-                if not is_too_old(j)
+                if not is_too_old(j, lookback_days)
                 and passes_title_filter(j, profile)
                 and passes_description_filter(j, profile)
             ]
