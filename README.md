@@ -223,13 +223,41 @@ Add your company names to the `Config - Companies` tab, then give Claude your li
 - Tier C: companies you keep seeing in job alerts; adjacent industries you're open to; companies that are early but on a trajectory you find interesting
 
 
-**Supported ATS platforms:** Ashby, Greenhouse, Lever, Gem, and Workday. These cover the majority of tech and growth-stage companies.
+**Supported ATS platforms:** Ashby, Greenhouse, Lever, Gem, Workday, and SmartRecruiters. These cover the majority of tech and growth-stage companies.
 
-**Unsupported platforms:** iCIMS, Taleo, Comeet, SmartRecruiters, and SAP SuccessFactors don't expose public APIs. For companies on those platforms, check their job boards manually or set a Google Alert. Claude will flag these when you give it your company list.
+**Unsupported platforms:** iCIMS, Taleo, Comeet, and SAP SuccessFactors don't expose public APIs. For companies on those platforms, check their job boards manually or set a Google Alert. Claude will flag these when you give it your company list.
 
 ---
 
-## Step 7: Run your first scan
+## Step 7: Set up your broad search terms
+
+In addition to monitoring your specific company list, the pipeline can search across LinkedIn, Indeed, Glassdoor, and other major job boards by role type — so you don't miss relevant postings at companies not on your radar.
+
+You define the search terms as query strings in the `Config - Search Terms` tab. Each row is one query (e.g. `Director of Revenue Operations`, `VP of AI Strategy`, `Head of GTM`). The pipeline runs every active query every morning and scores the results against your profile the same way it scores your target company results.
+
+**Generate your search terms automatically (recommended)**
+
+The easiest way: run the **Generate Search Terms** workflow. It reads your scoring profile — which was already built from your resume in Step 5 — and uses Claude to generate 8–10 optimized search queries tailored to your background, level, and target functions.
+
+1. Go to **Actions** → **Generate Search Terms** → **Run workflow → Run workflow**
+2. Open `Config - Search Terms` in your sheet when it finishes
+3. Review the queries — set `Active = N` for any you want to skip, and add your own rows at any time
+
+**Writing your own search terms**
+
+If you prefer to write them yourself, or want to add to what was generated, think about how recruiters actually title these roles — `Head of Revenue Operations` surfaces different results than `GTM Operations Leader`, even if they mean the same thing. A few principles:
+
+- Combine a seniority level with a function: `Director of AI Strategy`, `VP of Sales Operations`, `Head of Enterprise GTM`
+- Vary the combinations — don't repeat the same words in every query
+- 5–10 active queries is a good starting point; more than that and you'll burn through your API quota quickly
+
+Not sure where to start? Paste this into Claude along with a summary of your background:
+
+> I'm setting up automated job board search queries for my job search. My background is [2-3 sentences]. I'm targeting [level] roles in [function area]. Generate 8-10 search query strings I can use to search LinkedIn, Indeed, and Glassdoor — written the way a recruiter would actually title these roles.
+
+---
+
+## Step 8: Run your first scan
 
 1. Go to your forked repo on GitHub
 2. Click the **Actions** tab
@@ -262,6 +290,32 @@ Open the `3 - Opportunities CRM` tab each morning. New rows from the overnight s
 For roles that look promising: use the `1 - Master Connections` tab to find who in your network is connected to that company, then log the warm path in `4 - Proactive Targets`.
 
 Add a **Status** column value (`Applied`, `Networking`, `Passed`, etc.) to keep track of what you've acted on.
+
+---
+
+## This is not set-it-and-forget-it
+
+The pipeline runs itself, but getting value from it requires active management. Think of it less like a subscription and more like a search strategy you're running — one that needs tuning as the market moves and your thinking evolves.
+
+**Review your results weekly, not just daily.** After the first week, look at what's surfacing:
+- Are the scores making sense? If 8s and 9s feel mediocre when you read them, your profile thresholds or keywords may be off.
+- Are you seeing roles at all? Low yield often means your title filters are too narrow, your company list is too small, or the companies you're watching simply don't have open roles right now.
+- Are you missing roles you would have wanted? If you're finding better jobs through LinkedIn or word of mouth than through this system, that's a signal to expand your company list or loosen a filter.
+
+**Update your company list as your search evolves.** Your Tier A and B lists will shift — companies get acquired, announce layoffs, move off your radar, or come onto it. Add new ones, mark stale ones inactive. A company list that's two months old is probably stale.
+
+**Revisit your profile if your narrative changes.** Your profile drives scoring. If you're pivoting emphasis — different function, different stage, different geo — re-run the profile builder (Step 5) with updated materials and re-check your filter settings. The system scores what you tell it to care about; if your criteria shift but your profile doesn't, scores become misleading.
+
+**Check the logs after your initial setup and after any changes.** GitHub Actions shows you exactly what happened per company — how many jobs were fetched, how many passed the title/location filter, and how many were new and got scored. Go to the **Actions** tab → click the most recent completed run → click into the job to see the full log.
+
+Watch for a large gap between **Fetched** and **After filters** — for example, 200 jobs fetched and 0 after filters. That's a signal something is misconfigured, not that there are no open roles. This kind of silent failure is easy to miss: the system runs without errors, writes nothing to your Sheet, and it's impossible to tell from the Sheet alone whether that means "no new jobs today" or "a filter is blocking everything." The logs are the only place you'll see it.
+
+Check the logs specifically:
+- After your initial setup, to confirm the first run is producing output as expected
+- After any changes to your profile, filters, or company list, to confirm the change had the intended effect
+- Any time results drop suddenly or go to zero for multiple days in a row
+
+**Use the output to sharpen your outreach, not just to track jobs.** The `Strategic Thesis` and `Corporate Bottleneck` columns are most useful when you act on them quickly — while the role is new and before your competition applies. If you're regularly seeing good roles but not acting on them within a day or two, the pipeline is doing its job but the system isn't.
 
 ---
 
