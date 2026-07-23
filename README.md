@@ -135,9 +135,9 @@ Otherwise, follow the steps below:
 
 Secrets are how GitHub securely stores the credentials the script needs to connect to Anthropic and Google. You don't create these values yourself — each one comes from a service you already set up or can get in under a minute. GitHub stores them encrypted so they're never visible in your code or to anyone else.
 
-Go to your forked repo → **Settings → Secrets and variables → Actions → New repository secret**.
+Go to your repo → **Settings → Secrets and variables → Actions → New repository secret**.
 
-Add these three secrets, one at a time:
+Add these four secrets, one at a time:
 
 **Secret 1: `ANTHROPIC_API_KEY`**
 - *Where it comes from:* Anthropic generates this for you automatically
@@ -161,7 +161,16 @@ Add these three secrets, one at a time:
   [Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\Users\you\Downloads\your-key-file.json")) | clip
   ```
 
-After adding all three secrets, you can delete the JSON file from your computer.
+**Secret 4: `RAPIDAPI_KEY`**
+- *Where it comes from:* RapidAPI — this powers the broad job board search (LinkedIn, Indeed, Glassdoor) in Step 7
+- Go to [rapidapi.com](https://rapidapi.com) and create a free account
+- Search for **JSearch** and subscribe to the **OpenWeb Ninja** provider on the free tier (200 requests/month, no credit card required)
+- Go to your RapidAPI dashboard → **Apps** → copy your API key
+- Paste it as the value of this secret
+
+*The broad search feature is optional — if you skip this secret, the pipeline still monitors your target company list. You can add it later.*
+
+After adding all four secrets, you can delete the JSON file from your computer.
 
 ---
 
