@@ -111,18 +111,23 @@ The script can now read and write your sheet.
 
 ---
 
-## Step 3: Fork this repo
+## Step 3: Copy this repo to your GitHub account
 
 **New to GitHub?** GitHub is a free service that stores code and can run it on a schedule — think of it like Google Drive for code, with a built-in timer. You need a free account to use it. If you'd prefer a guided walkthrough, paste this into Claude:
 
-> I'm setting up a GitHub repository for an automated job search tool. I have no GitHub experience. Can you walk me through: creating a free GitHub account, forking a repository, and adding secrets to it? The repo URL is [copy it from your browser address bar right now].
+> I'm setting up a GitHub repository for an automated job search tool. I have no GitHub experience. Can you walk me through creating a free GitHub account and importing a repository as a private repo? The repo URL is [copy it from your browser address bar right now].
 
 Otherwise, follow the steps below:
 
 1. Create a free account at [github.com](https://github.com) if you don't have one
-2. Go to [github.com/jordanmilner-lgtm/strategic-copilot](https://github.com/jordanmilner-lgtm/strategic-copilot) and click **Fork** (top right) → **Create fork**
-3. On your forked repo, click **Settings** → under the repo name, check if it's set to **Public** or **Private**. Either works — if you prefer your target companies and profile to stay private, switch it to **Private** (Settings → scroll down → Change repository visibility).
-4. **Enable GitHub Actions on your fork** — GitHub disables Actions by default on forked repos. Go to the **Actions** tab on your fork and click **I understand my workflows, go ahead and enable them**. Without this step, the scan will never run.
+2. Go to [github.com/new/import](https://github.com/new/import)
+3. In **Your old repository's clone URL**, paste: `https://github.com/jordanmilner-lgtm/strategic-copilot`
+4. Name your new repository (e.g. `strategic-copilot`)
+5. Set visibility to **Private** — your target company list and profile will live here, so keep it private
+6. Click **Begin import** — GitHub copies all the code into your new private repo in about 30 seconds
+7. **Enable GitHub Actions** — go to the **Actions** tab on your new repo and click **I understand my workflows, go ahead and enable them**. Without this step, the scan will never run.
+
+*Note: GitHub's "Fork" button creates a public copy by default and free accounts cannot change a fork to private. The import method above creates a private repo from the start.*
 
 ---
 
