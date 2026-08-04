@@ -70,7 +70,6 @@ def main():
             continue
 
         # Per-company seniority override (e.g. Palantir uses 'lead' not 'director')
-        from filters import _parse_list
         co_seniority_raw = str(company.get('Seniority Override', '')).strip()
         co_profile = dict(profile)
         if co_seniority_raw:
