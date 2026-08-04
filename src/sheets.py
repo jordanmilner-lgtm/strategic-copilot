@@ -55,7 +55,7 @@ _TAB_SETUP = [
     (COMPANIES_TAB, ['Company Name', 'ATS Type', 'ATS Handle', 'Active', 'Seniority Override'], _COMPANIES_PLACEHOLDER),
     (PROFILE_TAB,   ['Field', 'Value'],                                   _PROFILE_PLACEHOLDER),
     (SEARCH_TAB,    ['Query', 'Active'],                                  _SEARCH_PLACEHOLDER),
-    (SCORED_TAB,    ['Job URL'],                                          []),
+    (SCORED_TAB,    ['Job URL', 'Job Title', 'Company', 'Fit Score', 'Date Scored'], []),
     (RESULTS_TAB,   RESULTS_HEADERS,                                      []),
 ]
 
@@ -106,11 +106,21 @@ def read_seen_urls(client, spreadsheet_id: str) -> set:
     return set(v.strip() for v in values[1:] if v.strip())
 
 
-def append_scored_urls(client, spreadsheet_id: str, urls: list):
-    if not urls:
+def append_scored_urls(client, spreadsheet_id: str, scored_jobs: list):
+    """scored_jobs: list of dicts with Job URL, Job Title, Company, Fit Score."""
+    if not scored_jobs:
         return
+    from datetime import datetime, timezone
+    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     ws = _ws(client, spreadsheet_id, SCORED_TAB)
-    ws.append_rows([[url] for url in urls], value_input_option='RAW')
+    rows = [[
+        j.get('Job URL', ''),
+        j.get('Job Title', ''),
+        j.get('Company', ''),
+        j.get('Fit Score', ''),
+        today,
+    ] for j in scored_jobs]
+    ws.append_rows(rows, value_input_option='RAW')
 
 
 def append_results(client, spreadsheet_id: str, jobs: list):

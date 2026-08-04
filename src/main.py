@@ -48,7 +48,7 @@ def main():
         if lower_titles and any(t in title for t in lower_titles):
             return score >= lower_threshold
         return score >= threshold
-    new_urls   = []
+    new_scored = []  # list of scored dicts for Scored URLs tab
     qualifying = []
     total_fetched  = 0
     total_filtered = 0
@@ -103,7 +103,7 @@ def main():
         for s in scored:
             url = s.get('Job URL', '')
             if url and url not in seen_urls:
-                new_urls.append(url)
+                new_scored.append(s)
                 seen_urls.add(url)
 
         hits = [s for s in scored if meets_threshold(s) and len(s) > 2]
@@ -121,9 +121,9 @@ def main():
     # ── Write company scan results before broad search so a broad search
     # failure never causes company results to be lost ────────────────────────
     print('\nWriting company scan results to Google Sheets...')
-    if new_urls:
-        append_scored_urls(client, sheets_id, new_urls)
-        print(f'  Wrote {len(new_urls)} URLs to Scored URLs tab')
+    if new_scored:
+        append_scored_urls(client, sheets_id, new_scored)
+        print(f'  Wrote {len(new_scored)} URLs to Scored URLs tab')
     if qualifying:
         append_results(client, sheets_id, qualifying)
         print(f'  Wrote {len(qualifying)} jobs to Opportunities CRM tab')
@@ -134,7 +134,7 @@ def main():
         print('BROAD SEARCH PASS')
         print(f'{"="*40}')
         bs_fetched = bs_filtered = bs_new = bs_scored = 0
-        bs_urls = []
+        bs_scored_jobs = []
         bs_qualifying = []
 
         for query in search_terms:
@@ -171,7 +171,7 @@ def main():
                 s['Source Lane'] = 'Lane 2 - Broad Search'
                 url = s.get('Job URL', '')
                 if url and url not in seen_urls:
-                    bs_urls.append(url)
+                    bs_scored_jobs.append(s)
                     seen_urls.add(url)
 
             hits = [s for s in scored if meets_threshold(s) and len(s) > 2]
@@ -184,9 +184,9 @@ def main():
         print(f'  New:       {bs_new}')
         print(f'  Scored:    {bs_scored}')
 
-        if bs_urls:
-            append_scored_urls(client, sheets_id, bs_urls)
-            print(f'  Wrote {len(bs_urls)} URLs to Scored URLs tab')
+        if bs_scored_jobs:
+            append_scored_urls(client, sheets_id, bs_scored_jobs)
+            print(f'  Wrote {len(bs_scored_jobs)} URLs to Scored URLs tab')
         if bs_qualifying:
             append_results(client, sheets_id, bs_qualifying)
             print(f'  Wrote {len(bs_qualifying)} jobs to Opportunities CRM tab')
