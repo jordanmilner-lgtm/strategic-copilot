@@ -29,7 +29,7 @@ _PROFILE_PLACEHOLDER = [
     ['Comp Target',        ''],
     ['Score Threshold',    '6'],
     ['Lower Score Threshold', '5'],
-    ['Lower Threshold Titles', 'chief of staff'],
+    ['Lower Threshold Titles', 'chief of staff, executive operations, office of, business operations, strategic operations, corporate operations, transformation'],
     ['Location',           'US only'],
     ['Seniority Keywords', 'head of, vp, vice president, director, chief, principal, managing director, general manager'],
     ['Target Functions',   'gtm, go-to-market, sales, revenue, commercial, product ops, product operations, product strategy, business ops, business operations, strategy, transformation, enablement, customer success, partnerships, alliances, ai strategy, enterprise, growth, chief of staff, value engineering'],
