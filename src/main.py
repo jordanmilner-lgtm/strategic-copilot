@@ -107,17 +107,32 @@ def main():
     print(f'Qualifying:      {len(qualifying)}')
     print(f'{"="*40}')
 
+    # ── Write company scan results before broad search so a broad search
+    # failure never causes company results to be lost ────────────────────────
+    print('\nWriting company scan results to Google Sheets...')
+    if new_urls:
+        append_scored_urls(client, sheets_id, new_urls)
+        print(f'  Wrote {len(new_urls)} URLs to Scored URLs tab')
+    if qualifying:
+        append_results(client, sheets_id, qualifying)
+        print(f'  Wrote {len(qualifying)} jobs to Opportunities CRM tab')
+
     # ── Broad search pass ───────────────────────────────────────────────────
     if rapidapi_key and search_terms:
         print(f'\n{"="*40}')
         print('BROAD SEARCH PASS')
         print(f'{"="*40}')
         bs_fetched = bs_filtered = bs_new = bs_scored = 0
+        bs_urls = []
+        bs_qualifying = []
 
         for query in search_terms:
             print(f'\nQuery: "{query}"')
-
-            jobs = fetch_broad_search(query, rapidapi_key)
+            try:
+                jobs = fetch_broad_search(query, rapidapi_key)
+            except Exception as e:
+                print(f'  Broad search error for "{query}": {e}')
+                continue
             bs_fetched += len(jobs)
             print(f'  Fetched:   {len(jobs)}')
 
@@ -145,11 +160,11 @@ def main():
                 s['Source Lane'] = 'Lane 2 - Broad Search'
                 url = s.get('Job URL', '')
                 if url and url not in seen_urls:
-                    new_urls.append(url)
+                    bs_urls.append(url)
                     seen_urls.add(url)
 
             hits = [s for s in scored if s.get('Fit Score', 0) >= threshold and len(s) > 2]
-            qualifying.extend(hits)
+            bs_qualifying.extend(hits)
             print(f'  Score >= {threshold}: {len(hits)}')
 
         print(f'\nBroad search totals:')
@@ -157,18 +172,18 @@ def main():
         print(f'  Filtered:  {bs_filtered}')
         print(f'  New:       {bs_new}')
         print(f'  Scored:    {bs_scored}')
+
+        if bs_urls:
+            append_scored_urls(client, sheets_id, bs_urls)
+            print(f'  Wrote {len(bs_urls)} URLs to Scored URLs tab')
+        if bs_qualifying:
+            append_results(client, sheets_id, bs_qualifying)
+            print(f'  Wrote {len(bs_qualifying)} jobs to Opportunities CRM tab')
     elif search_terms and not rapidapi_key:
         print('\nSkipping broad search — RAPIDAPI_KEY not set')
 
-    print('\nWriting to Google Sheets...')
-    if new_urls:
-        append_scored_urls(client, sheets_id, new_urls)
-        print(f'  Wrote {len(new_urls)} URLs to Scored URLs tab')
-    if qualifying:
-        append_results(client, sheets_id, qualifying)
-        print(f'  Wrote {len(qualifying)} jobs to Opportunities CRM tab')
-
     print(f'\n[{datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")} UTC] Done')
+
 
 
 if __name__ == '__main__':
