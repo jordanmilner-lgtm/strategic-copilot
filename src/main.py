@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from sheets import get_client, ensure_setup, read_seen_urls, append_scored_urls, append_results, load_companies, load_profile, load_search_terms
 from fetchers import FETCHERS, fetch_broad_search
-from filters import passes_title_filter, passes_description_filter, is_too_old
+from filters import passes_title_filter, passes_description_filter, is_too_old, _parse_list
 from scorer import score_jobs
 
 
@@ -35,8 +35,19 @@ def main():
     print(f'  {len(search_terms)} active search terms')
     print(f'  {len(seen_urls)} URLs in dedup cache')
 
-    threshold  = int(profile.get('score_threshold', 6) or 6)
+    threshold       = int(profile.get('score_threshold', 6) or 6)
+    lower_threshold = int(profile.get('lower_score_threshold', threshold) or threshold)
+    lower_titles    = _parse_list(profile.get('lower_threshold_titles', ''))
     print(f'  Lookback:  {lookback_days} days')
+    if lower_titles:
+        print(f'  Lower threshold ({lower_threshold}) for: {", ".join(lower_titles)}')
+
+    def meets_threshold(scored_job):
+        score = scored_job.get('Fit Score', 0)
+        title = (scored_job.get('Job Title') or '').lower()
+        if lower_titles and any(t in title for t in lower_titles):
+            return score >= lower_threshold
+        return score >= threshold
     new_urls   = []
     qualifying = []
     total_fetched  = 0
@@ -95,7 +106,7 @@ def main():
                 new_urls.append(url)
                 seen_urls.add(url)
 
-        hits = [s for s in scored if s.get('Fit Score', 0) >= threshold and len(s) > 2]
+        hits = [s for s in scored if meets_threshold(s) and len(s) > 2]
         qualifying.extend(hits)
         print(f'  Score >= {threshold}: {len(hits)}')
 
@@ -163,7 +174,7 @@ def main():
                     bs_urls.append(url)
                     seen_urls.add(url)
 
-            hits = [s for s in scored if s.get('Fit Score', 0) >= threshold and len(s) > 2]
+            hits = [s for s in scored if meets_threshold(s) and len(s) > 2]
             bs_qualifying.extend(hits)
             print(f'  Score >= {threshold}: {len(hits)}')
 

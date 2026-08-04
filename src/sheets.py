@@ -28,6 +28,8 @@ _PROFILE_PLACEHOLDER = [
     ['Negative Signals',   'Replace with signals separated by | e.g. Pure sales quota role | Individual contributor only'],
     ['Comp Target',        ''],
     ['Score Threshold',    '6'],
+    ['Lower Score Threshold', '5'],
+    ['Lower Threshold Titles', 'chief of staff'],
     ['Location',           'US only'],
     ['Seniority Keywords', 'head of, vp, vice president, director, chief, principal, managing director, general manager'],
     ['Target Functions',   'gtm, go-to-market, sales, revenue, commercial, product ops, product operations, product strategy, business ops, business operations, strategy, transformation, enablement, customer success, partnerships, alliances, ai strategy, enterprise, growth, chief of staff, value engineering'],
